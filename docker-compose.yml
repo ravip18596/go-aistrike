@@ -1,0 +1,54 @@
+version: '3.8'
+services:
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_DATABASE=aistrike
+      - MYSQL_USER=aistrike
+      - MYSQL_PASSWORD=aistrike
+      - MYSQL_ROOT_PASSWORD=aistrike
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  api-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - redis
+      - kafka
+
+volumes:
+  redis-data:
+

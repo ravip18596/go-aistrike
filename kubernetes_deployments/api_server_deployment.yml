@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-server
+  template:
+    metadata:
+      labels:
+        app: api-server
+    spec:
+      containers:
+      - name: api-server
+        image: <your-api-server-image>:latest # Replace with your API Server image tag
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MYSQL_HOST
+          value: mysql
+        - name: REDIS_HOST
+          value: redis
+        - name: KAFKA_HOST
+          value: kafka
+        - name: MYSQL_PORT
+          value: "3306"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: KAFKA_PORT
+          value: "9092"
+        dependsOn:
+        - mysql
+        - redis
+        - kafka
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-server
+spec:
+  selector:
+    app: api-server
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP
